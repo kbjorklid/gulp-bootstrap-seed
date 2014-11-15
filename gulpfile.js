@@ -30,16 +30,17 @@ gulp.task('scripts', function () {
 gulp.task('html', ['styles', 'scripts'], function () {
     var jsFilter = $.filter('**/*.js');
     var cssFilter = $.filter('**/*.css');
+    var assets = $.useref.assets();
 
     return gulp.src('app/*.html')
-        .pipe($.useref.assets())
+        .pipe(assets)
         .pipe(jsFilter)
         .pipe($.uglify())
         .pipe(jsFilter.restore())
         .pipe(cssFilter)
         .pipe($.csso())
         .pipe(cssFilter.restore())
-        .pipe($.useref.restore())
+        .pipe(assets.restore())
         .pipe($.useref())
         .pipe(gulp.dest('dist'))
         .pipe($.size());
@@ -87,10 +88,16 @@ gulp.task('serve', ['styles'], function () {
         },
         debugInfo: false,
         open: false,
-        hostnameSuffix: ".xip.io"
+        xip: true,
+        startPath: "/index.html"
     }, function (err, bs) {
-        require('opn')(bs.options.url);
-        console.log('Started connect web server on ' + bs.options.url);
+        if (err) {
+            console.log('Browser sync error: ' + err);
+        } else {
+            var url = bs.options.urls.local;
+            require('opn')(url);
+            console.log('Started connect web server on ' + url);
+        }
     });
 });
 
