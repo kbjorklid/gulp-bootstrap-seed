@@ -1,25 +1,46 @@
 'use strict';
-// generated on 2014-11-15 using generator-gulp-bootstrap 0.0.4
 
 var gulp = require('gulp');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var gutil = require('gulp-util');
 var del = require('del');
-
-// load plugins
-var $ = require('gulp-load-plugins')();
+var glob = require('glob');
+var gulpif = require('gulp-if');
 var mainBowerFiles = require('main-bower-files');
 
-gulp.task('styles', function () {
-    return gulp.src('app/styles/main.scss')
-        .pipe($.sass({errLogToConsole: true}))
-        .pipe($.autoprefixer('last 1 version'))
-        .pipe(gulp.dest('app/styles'))
-        .pipe(reload({stream:true}))
-        .pipe($.size())
-        .pipe($.notify("Compilation complete."));;
-});
+var $ = require('gulp-load-plugins')();
+
+var stylesFunctionBuilder = function(dist) {
+    return function () {
+        return gulp.src('app/styles/main.scss')
+            .pipe($.sass({errLogToConsole: true}))
+            .pipe(
+                gulpif(dist, $.size({
+                  title: 'CSS size before processing',
+                  showFiles: true
+                }))
+            )
+            .pipe(
+                gulpif(dist, $.uncss({
+                    html: glob.sync('app/**/*.html')
+                }))
+            )
+            .pipe(gulpif(dist, $.csso()))
+            .pipe($.autoprefixer('last 1 version'))
+            .pipe(gulp.dest('app/styles'))
+            .pipe(reload({stream:true}))
+            .pipe(gulpif(dist, $.size({
+                title: 'CSS size after processing',
+                showFiles: true
+            })))
+            .pipe(
+                gulpif(!dist, $.notify("Style compilation complete."))
+            );
+    };
+};
+gulp.task('styles', stylesFunctionBuilder(true));
+gulp.task('stylesquick', stylesFunctionBuilder(false));
 
 gulp.task('scripts', function () {
     return gulp.src('app/scripts/**/*.js')
@@ -85,7 +106,7 @@ gulp.task('default', ['clean'], function () {
     gulp.start('build');
 });
 
-gulp.task('serve', ['styles'], function () {
+gulp.task('serve', ['stylesquick'], function () {
     browserSync.init(null, {
         server: {
             baseDir: 'app',
@@ -127,7 +148,7 @@ gulp.task('watch', ['serve'], function () {
     // watch for changes
     gulp.watch(['app/*.html'], reload);
 
-    gulp.watch('app/styles/**/*.scss', ['styles']);
+    gulp.watch('app/styles/**/*.scss', ['stylesquick']);
     gulp.watch('app/scripts/**/*.js', ['scripts']);
     gulp.watch('app/images/**/*', ['images']);
     gulp.watch('bower.json', ['wiredep']);
