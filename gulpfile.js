@@ -5,6 +5,7 @@ var gulp = require('gulp');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var gutil = require('gulp-util');
+var del = require('del');
 
 // load plugins
 var $ = require('gulp-load-plugins')();
@@ -70,8 +71,12 @@ gulp.task('fonts', function () {
         .pipe($.size());
 });
 
-gulp.task('clean', function () {
-    return gulp.src(['app/styles/main.css', 'dist'], { read: false }).pipe($.clean());
+gulp.task('clean', function (cb) {
+    //return gulp.src(['app/styles/main.css', 'dist'], { read: false }).pipe($.clean());
+    del([
+        'app/styles/main.css',
+        'dist'
+    ], cb);
 });
 
 gulp.task('build', ['html', 'images', 'fonts']);
