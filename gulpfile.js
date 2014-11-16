@@ -69,6 +69,12 @@ gulp.task('html', ['styles', 'scripts'], function () {
         .pipe(cssFilter.restore())
         .pipe(assets.restore())
         .pipe($.useref())
+        .pipe(
+            gulpif(mode.isDist(), $.size({title: "Size before minification"}))
+        )
+        .pipe(
+            gulpif(mode.isDist(), $.minifyHtml())
+        )
         .pipe(gulp.dest('dist'))
         .pipe($.size());
 });
@@ -94,7 +100,7 @@ gulp.task('fonts', function () {
         .pipe($.filter('**/*.{eot,svg,ttf,woff}'))
         .pipe($.flatten())
         .pipe(gulp.dest('dist/fonts'))
-        .pipe($.size());
+        .pipe($.size({title: 'Fonts'}));
 });
 
 gulp.task('clean', function (cb) {
@@ -104,7 +110,7 @@ gulp.task('clean', function (cb) {
     ], cb);
 });
 
-gulp.task('build', ['html', 'images', 'fonts']);
+gulp.task('build', ['wiredep', 'html', 'images', 'fonts']);
 
 gulp.task('default', ['clean'], function () {
     gulp.start('build');
@@ -113,7 +119,7 @@ gulp.task('default', ['clean'], function () {
 gulp.task('serve', ['styles'], function () {
     browserSync.init(null, {
         server: {
-            baseDir: 'app',
+            baseDir: ['app', 'dist'],
             directory: true
         },
         debugInfo: false,
@@ -144,7 +150,7 @@ gulp.task('wiredep', function () {
     gulp.src('app/*.html')
         .pipe(wiredep({
             directory: 'app/bower_components',
-            exclude: ['bootstrap-sass-official']
+            exclude: ['bootstrap-sass-official', 'font-awesome']
         }))
         .pipe(gulp.dest('app'));
 });
@@ -153,7 +159,10 @@ gulp.task('setwatchmode', [], function () {
     mode.setWatch();
 });
 
-gulp.task('watch', ['setwatchmode', 'serve'], function () {
+gulp.task('watch', ['setwatchmode', 'watchinternal'], function() {});
+gulp.task('distwatch', ['watchinternal'], function() {});
+
+gulp.task('watchinternal', ['serve'], function () {
     gulp.watch(['app/*.html'], reload);
     gulp.watch('app/styles/**/*.scss', ['styles']);
     gulp.watch('app/scripts/**/*.js', ['scripts']);
