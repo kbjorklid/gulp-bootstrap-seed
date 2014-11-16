@@ -3,7 +3,6 @@
 var gulp = require('gulp');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
-var gutil = require('gulp-util');
 var del = require('del');
 var glob = require('glob');
 var gulpif = require('gulp-if');
@@ -11,36 +10,42 @@ var mainBowerFiles = require('main-bower-files');
 
 var $ = require('gulp-load-plugins')();
 
-var stylesFunctionBuilder = function(dist) {
-    return function () {
-        return gulp.src('app/styles/main.scss')
-            .pipe($.sass({errLogToConsole: true}))
-            .pipe(
-                gulpif(dist, $.size({
-                  title: 'CSS size before processing',
-                  showFiles: true
-                }))
-            )
-            .pipe(
-                gulpif(dist, $.uncss({
-                    html: glob.sync('app/**/*.html')
-                }))
-            )
-            .pipe(gulpif(dist, $.csso()))
-            .pipe($.autoprefixer('last 1 version'))
-            .pipe(gulp.dest('app/styles'))
-            .pipe(reload({stream:true}))
-            .pipe(gulpif(dist, $.size({
-                title: 'CSS size after processing',
-                showFiles: true
-            })))
-            .pipe(
-                gulpif(!dist, $.notify("Style compilation complete."))
-            );
-    };
-};
-gulp.task('styles', stylesFunctionBuilder(true));
-gulp.task('stylesquick', stylesFunctionBuilder(false));
+// This variable is set depending on what kind of
+// execution (watch or dist) it is to make
+var mode = {
+    _compileMode : 'dist',
+    isDist   : function() { return this._compileMode === 'dist'; },
+    isWatch  : function() { return this._compileMode === 'watch'; },
+    setDist  : function() { this._compileMode = 'dist'; },
+    setWatch : function() { this._compileMode = 'watch'; }
+}
+
+gulp.task('styles', function() {
+    return gulp.src('app/styles/main.scss')
+        .pipe($.sass({errLogToConsole: true}))
+        .pipe(
+            gulpif(mode.isDist(), $.size({
+              title: 'CSS size before processing',
+              showFiles: true
+            }))
+        )
+        .pipe(
+            gulpif(mode.isDist(), $.uncss({
+                html: glob.sync('app/**/*.html')
+            }))
+        )
+        .pipe(gulpif(mode.isDist(), $.csso()))
+        .pipe($.autoprefixer('last 1 version'))
+        .pipe(gulp.dest('app/styles'))
+        .pipe(reload({stream:true}))
+        .pipe(gulpif(mode.isDist(), $.size({
+            title: 'CSS size after processing',
+            showFiles: true
+        })))
+        .pipe(
+            gulpif(mode.isWatch(), $.notify("Style compilation complete."))
+        );
+});
 
 gulp.task('scripts', function () {
     return gulp.src('app/scripts/**/*.js')
@@ -93,7 +98,6 @@ gulp.task('fonts', function () {
 });
 
 gulp.task('clean', function (cb) {
-    //return gulp.src(['app/styles/main.css', 'dist'], { read: false }).pipe($.clean());
     del([
         'app/styles/main.css',
         'dist'
@@ -106,7 +110,7 @@ gulp.task('default', ['clean'], function () {
     gulp.start('build');
 });
 
-gulp.task('serve', ['stylesquick'], function () {
+gulp.task('serve', ['styles'], function () {
     browserSync.init(null, {
         server: {
             baseDir: 'app',
@@ -130,11 +134,13 @@ gulp.task('serve', ['stylesquick'], function () {
 // inject bower components
 gulp.task('wiredep', function () {
     var wiredep = require('wiredep').stream;
+
     gulp.src('app/styles/*.scss')
         .pipe(wiredep({
             directory: 'app/bower_components'
         }))
         .pipe(gulp.dest('app/styles'));
+
     gulp.src('app/*.html')
         .pipe(wiredep({
             directory: 'app/bower_components',
@@ -143,12 +149,13 @@ gulp.task('wiredep', function () {
         .pipe(gulp.dest('app'));
 });
 
-gulp.task('watch', ['serve'], function () {
+gulp.task('setwatchmode', [], function () {
+    mode.setWatch();
+});
 
-    // watch for changes
+gulp.task('watch', ['setwatchmode', 'serve'], function () {
     gulp.watch(['app/*.html'], reload);
-
-    gulp.watch('app/styles/**/*.scss', ['stylesquick']);
+    gulp.watch('app/styles/**/*.scss', ['styles']);
     gulp.watch('app/scripts/**/*.js', ['scripts']);
     gulp.watch('app/images/**/*', ['images']);
     gulp.watch('bower.json', ['wiredep']);
