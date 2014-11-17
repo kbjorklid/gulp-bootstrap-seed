@@ -41,10 +41,28 @@ gulp.task('styles', function() {
         );
 });
 
+var jshintReporterFunction = function (file) {
+    if (file.jshint.success) { return false; }
+    var errors = file.jshint.results.map(function (data) {
+        if (data.error) {
+            return "(" + data.error.line + ":" + data.error.character + ") "
+                + data.error.reason;
+        }
+    }).join("\n");
+    return file.relative + " (" + file.jshint.results.length + " errors)\n" + errors;
+};
+
+var jshintNotifyOptions = {
+    message : jshintReporterFunction,
+    title: 'JSHint failure'
+};
+
+
 gulp.task('scripts', function () {
     return gulp.src('app/scripts/**/*.js')
         .pipe($.jshint())
         .pipe($.jshint.reporter(require('jshint-stylish')))
+        .pipe($.notify(jshintNotifyOptions))
         .pipe(reload({stream:true}));
 });
 
@@ -132,7 +150,7 @@ gulp.task('default', ['clean'], function () {
     gulp.start('build');
 });
 
-gulp.task('serve', ['build'], function () {
+gulp.task('serve', ['scripts', 'styles', 'watch:html'], function () {
     browserSync.init(null, {
         server: {
             baseDir: ['.tmp', 'app'],
