@@ -1,6 +1,7 @@
 {
   "name": "seed",
   "version": "0.0.0",
+  "private": true,
   "dependencies": {},
   "devDependencies": {
     "browser-sync": "^1.6.5",

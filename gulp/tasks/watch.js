@@ -36,7 +36,6 @@ gulp.task('serve', ['wiredep', 'scripts', 'styles', 'watch:html'], function () {
     });
 });
 
-
 gulp.task('watch:setmode', [], function () {
     mode.setWatch();
 });
