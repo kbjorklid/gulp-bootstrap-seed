@@ -1,0 +1,5 @@
+{
+    watch : {
+        notify_after_successful_processing : true
+    }
+}

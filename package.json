@@ -1,6 +1,7 @@
 {
   "name": "seed",
   "version": "0.0.0",
+  "private": true,
   "dependencies": {},
   "devDependencies": {
     "browser-sync": "^1.6.5",
@@ -10,6 +11,7 @@
     "gulp-autoprefixer": "^1.0.1",
     "gulp-cache": "^0.2.4",
     "gulp-changed": "^1.0.0",
+    "gulp-concat": "^2.4.1",
     "gulp-csso": "^0.2.9",
     "gulp-debug": "^1.0.1",
     "gulp-filter": "^1.0.2",
@@ -31,6 +33,7 @@
     "lazypipe": "^0.2.2",
     "main-bower-files": "^2.4.0",
     "opn": "^1.0.0",
+    "require-dir": "^0.1.0",
     "streamqueue": "^0.1.1",
     "wiredep": "^2.1.0"
   },
