@@ -1,5 +1,24 @@
 'use strict';
+var gulp = require('gulp'),
+    del  = require('del');
 
+require('require-dir')('./gulp/tasks');
+
+gulp.task('clean', function (cb) {
+    del([
+        'app/styles/main.css',
+        'dist',
+        '.tmp'
+    ], cb);
+});
+
+gulp.task('build', ['wiredep', 'html', 'images', 'fonts']);
+
+gulp.task('default', ['clean'], function () {
+    gulp.start('build');
+});
+
+/*
 var gulp = require('gulp');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
@@ -30,7 +49,7 @@ var mode = {
 
 /*
  * Style minification should not be done here. It is done in the 'html' task.
- */
+ * /
 gulp.task('styles', function() {
     return gulp.src('app/styles/main.scss')
         .pipe($.sass({errLogToConsole: true}))
@@ -59,7 +78,7 @@ var jshintNotifyOptions = {
 
 
 gulp.task('scripts', function () {
-    return gulp.src('app/scripts/**/*.js')
+    return gulp.src('app/scripts/** /*.js')
         .pipe($.jshint())
         .pipe($.jshint.reporter(require('jshint-stylish')))
         .pipe($.notify(jshintNotifyOptions))
@@ -72,7 +91,7 @@ var processStyles = lazypipe()
               title: 'CSS size before processing',
               showFiles: true
             })
-    .pipe($.uncss, {html: glob.sync('app/**/*.html')})
+    .pipe($.uncss, {html: glob.sync('app/** /*.html')})
     .pipe($.autoprefixer, 'last 1 version')
     .pipe($.csso)
     .pipe($.size, {
@@ -81,13 +100,13 @@ var processStyles = lazypipe()
             });
 
 gulp.task('html', ['styles', 'scripts'], function () {
-    var jsFilter = $.filter('**/*.js');
-    var cssFilter = $.filter('**/*.css');
+    var jsFilter = $.filter('** /*.js');
+    var cssFilter = $.filter('** /*.css');
     var assets = $.useref.assets();
-    var bowerFilesFilter = $.filter(['*', '!**/bower_components']);
-    var htmlFilter = $.filter(['**/*.html']);
+    var bowerFilesFilter = $.filter(['*', '!** /bower_components']);
+    var htmlFilter = $.filter(['** /*.html']);
 
-    return gulp.src('app/**/*.html')
+    return gulp.src('app/** /*.html')
         .pipe(bowerFilesFilter)
         .pipe(assets)
         .pipe(jsFilter)
@@ -107,13 +126,13 @@ gulp.task('html', ['styles', 'scripts'], function () {
 });
 
 gulp.task('watch:html', [], function () {
-    return gulp.src('app/**/*.html')
-        .pipe($.filter(['*', '!**/bower_components']))
-        .pipe(gulpif('**/*.html', reload({stream:true, once:true})));
+    return gulp.src('app/** /*.html')
+        .pipe($.filter(['*', '!** /bower_components']))
+        .pipe(gulpif('** /*.html', reload({stream:true, once:true})));
 });
 
 gulp.task('images', function () {
-    return gulp.src('app/images/**/*')
+    return gulp.src('app/images/** /*')
         .pipe($.cache($.imagemin({
             optimizationLevel: 3,
             progressive: true,
@@ -128,9 +147,9 @@ gulp.task('fonts', function () {
     var streamqueue = require('streamqueue');
     return streamqueue({objectMode: true},
         gulp.src(mainBowerFiles()),
-        gulp.src('app/fonts/**/*')
+        gulp.src('app/fonts/** /*')
     )
-        .pipe($.filter('**/*.{eot,svg,ttf,woff}'))
+        .pipe($.filter('** /*.{eot,svg,ttf,woff}'))
         .pipe($.flatten())
         .pipe(gulp.dest(mode.getDir() + '/fonts'))
         .pipe($.size({title: 'Fonts'}));
@@ -198,9 +217,10 @@ gulp.task('watch', ['setwatchmode', 'watchinternal'], function() {});
 gulp.task('distwatch', ['watchinternal'], function() {});
 
 gulp.task('watchinternal', ['serve'], function () {
-    gulp.watch(['app/**/*.html'], ['watch:html']);
-    gulp.watch('app/styles/**/*.scss', ['styles']);
-    gulp.watch('app/scripts/**/*.js', ['scripts']);
-    gulp.watch('app/images/**/*', ['images']);
+    gulp.watch(['app/** /*.html'], ['watch:html']);
+    gulp.watch('app/styles/** /*.scss', ['styles']);
+    gulp.watch('app/scripts/** /*.js', ['scripts']);
+    gulp.watch('app/images/** /*', ['images']);
     gulp.watch('bower.json', ['wiredep']);
 });
+*/
